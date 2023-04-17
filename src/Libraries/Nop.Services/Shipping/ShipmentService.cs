@@ -4,6 +4,7 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Data;
+using Nop.Services.Catalog;
 using Nop.Services.Shipping.Pickup;
 using Nop.Services.Shipping.Tracking;
 
@@ -17,6 +18,7 @@ namespace Nop.Services.Shipping
         #region Fields
 
         protected readonly IPickupPluginManager _pickupPluginManager;
+        protected readonly IProductAttributeParser _productAttributeParser;
         protected readonly IRepository<Address> _addressRepository;
         protected readonly IRepository<Order> _orderRepository;
         protected readonly IRepository<OrderItem> _orderItemRepository;
@@ -30,6 +32,7 @@ namespace Nop.Services.Shipping
         #region Ctor
 
         public ShipmentService(IPickupPluginManager pickupPluginManager,
+            IProductAttributeParser productAttributeParser,
             IRepository<Address> addressRepository,
             IRepository<Order> orderRepository,
             IRepository<OrderItem> orderItemRepository,
@@ -39,6 +42,7 @@ namespace Nop.Services.Shipping
             IShippingPluginManager shippingPluginManager)
         {
             _pickupPluginManager = pickupPluginManager;
+            _productAttributeParser = productAttributeParser;
             _addressRepository = addressRepository;
             _orderRepository = orderRepository;
             _orderItemRepository = orderItemRepository;
@@ -384,11 +388,33 @@ namespace Nop.Services.Shipping
             }
 
             var queryProductOrderItems = from orderItem in _orderItemRepository.Table
-                                         where orderItem.ProductId == product.Id
+                                         where orderItem.ProductId == product.Id || orderItem.AttributesXml != null
                                          select orderItem.Id;
             query = from si in query
                     where queryProductOrderItems.Any(orderItemId => orderItemId == si.OrderItemId)
                     select si;
+
+            //find associated products of item
+            var attrsXML = (from q in query
+                           join oi in _orderItemRepository.Table on q.OrderItemId equals oi.Id
+                          select oi.AttributesXml).ToList();
+
+            if (attrsXML.Any())
+            {
+                var totalQuantity = 0;
+                foreach (var attrXML in attrsXML)
+                {
+                    var attributeValue = (await _productAttributeParser.ParseProductAttributeValuesAsync(attrXML))
+                        .Where(x => x.AttributeValueType == AttributeValueType.AssociatedToProduct && x.AssociatedProductId == product.Id).FirstOrDefault();
+
+                    if (attributeValue != null)
+                    {
+                        totalQuantity += attributeValue.Quantity;
+                    }
+                }
+                if (totalQuantity > 0)
+                    return totalQuantity;
+            }
 
             //some null validation
             var result = Convert.ToInt32(await query.SumAsync(si => (int?)si.Quantity));
