@@ -2,7 +2,9 @@
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml.XPath;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
@@ -404,6 +406,8 @@ namespace Nop.Web.Factories
                         Name = await _localizationService.GetLocalizedAsync(catBr, x => x.Name),
                         SeName = await _urlRecordService.GetSeNameAsync(catBr)
                     }).ToListAsync();
+
+                model.JsonLd = new HtmlString(JsonConvert.SerializeObject(await _categoryService.PrepareJsonLdBreadCrumbListAsync(category)));
             }
 
             var currentStore = await _storeContext.GetCurrentStoreAsync();

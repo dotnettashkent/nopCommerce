@@ -1,4 +1,5 @@
-﻿using Nop.Web.Framework.Models;
+﻿using Microsoft.AspNetCore.Html;
+using Nop.Web.Framework.Models;
 using Nop.Web.Models.Media;
 
 namespace Nop.Web.Models.Catalog
@@ -31,6 +32,8 @@ namespace Nop.Web.Models.Catalog
         public IList<ProductOverviewModel> FeaturedProducts { get; set; }
 
         public CatalogProductsModel CatalogProductsModel { get; set; }
+
+        public HtmlString JsonLd { get; set; }
 
         #region Nested Classes
 

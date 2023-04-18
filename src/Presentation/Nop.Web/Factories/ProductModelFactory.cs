@@ -1,10 +1,13 @@
 ﻿using System.Globalization;
 using System.Net;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.JsonLD;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
@@ -25,6 +28,7 @@ using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
 using Nop.Services.Vendors;
+using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Common;
@@ -51,6 +55,7 @@ namespace Nop.Web.Factories
         protected readonly IGenericAttributeService _genericAttributeService;
         protected readonly ILocalizationService _localizationService;
         protected readonly IManufacturerService _manufacturerService;
+        protected readonly INopUrlHelper _nopUrlHelper;
         protected readonly IPermissionService _permissionService;
         protected readonly IPictureService _pictureService;
         protected readonly IPriceCalculationService _priceCalculationService;
@@ -95,6 +100,7 @@ namespace Nop.Web.Factories
             IGenericAttributeService genericAttributeService,
             ILocalizationService localizationService,
             IManufacturerService manufacturerService,
+            INopUrlHelper nopUrlHelper,
             IPermissionService permissionService,
             IPictureService pictureService,
             IPriceCalculationService priceCalculationService,
@@ -135,6 +141,7 @@ namespace Nop.Web.Factories
             _genericAttributeService = genericAttributeService;
             _localizationService = localizationService;
             _manufacturerService = manufacturerService;
+            _nopUrlHelper = nopUrlHelper;
             _permissionService = permissionService;
             _pictureService = pictureService;
             _priceCalculationService = priceCalculationService;
@@ -713,8 +720,23 @@ namespace Nop.Web.Factories
                 });
             }
 
+            var jsonLdBreadcrumbList = await _categoryService.PrepareJsonLdBreadCrumbListAsync(category);
+
+            jsonLdBreadcrumbList.ItemListElement.Add(
+                new JsonLdBreadcrumbListItem()
+                {
+                    Position = jsonLdBreadcrumbList.ItemListElement.Count + 1,
+                    Item = new JsonLdBreadcrumbItem()
+                    {
+                        Id = await _nopUrlHelper.RouteGenericUrlAsync<Category>(new { SeName = breadcrumbModel.ProductSeName }, _webHelper.IsCurrentConnectionSecured() ? "https" : "http"),
+                        Name = breadcrumbModel.ProductName,
+                    }
+                });
+            breadcrumbModel.JsonLd = new HtmlString(JsonConvert.SerializeObject(jsonLdBreadcrumbList));
+
             return breadcrumbModel;
         }
+
 
         /// <summary>
         /// Prepare the product tag models
@@ -1321,6 +1343,81 @@ namespace Nop.Web.Factories
             return (cachedPictures.DefaultPictureModel, allPictureModels, allvideoModels);
         }
 
+        /// <summary>
+        /// Prepare JsonLD product
+        /// </summary>
+        /// <param name="model">Product details model</param>
+        /// <returns>A task that represents the asynchronous operation
+        /// The task result JsonLD product
+        /// </returns>
+        protected virtual async Task<JsonLdProduct> PrepareJsonLdProductAsync(ProductDetailsModel model)
+        {
+            var productUrl = await _nopUrlHelper.RouteGenericUrlAsync<Product>(new { SeName = model.SeName }, _webHelper.IsCurrentConnectionSecured() ? "https" : "http");
+            var productPrice = model.AssociatedProducts.Any()
+                ? model.AssociatedProducts.Min(associatedProduct => associatedProduct.ProductPrice.PriceValue)
+                : model.ProductPrice.PriceValue;
+
+            var product = new JsonLdProduct
+            {
+                Name = model.Name,
+                Sku = model.Sku,
+                Gtin = model.Gtin,
+                Mpn = model.ManufacturerPartNumber,
+                Description = model.ShortDescription,
+                Image = model.DefaultPictureModel.ImageUrl
+            };
+
+            foreach (var manufacturer in model.ProductManufacturers)
+            {
+                product.Brand.Add(new JsonLdBrand() { Name = manufacturer.Name });
+            }
+
+            if (model.ProductReviewOverview.TotalReviews > 0)
+            {
+                var ratingPercent = 0;
+                if (model.ProductReviewOverview.TotalReviews != 0)
+                {
+                    ratingPercent = ((model.ProductReviewOverview.RatingSum * 100) / model.ProductReviewOverview.TotalReviews) / 5;
+                }
+                var ratingValue = ratingPercent / (decimal)20;
+
+                product.AggregateRating = new JsonLdAggregateRating
+                {
+                    RatingValue = ratingValue.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture),
+                    ReviewCount = model.ProductReviewOverview.TotalReviews
+                };
+            }
+            product.Offer = new JsonLdOffer()
+            {
+                Url = productUrl.ToString(),
+                Price = model.ProductPrice.CallForPrice ? null : productPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                PriceCurrency = model.ProductPrice.CurrencyCode,
+                PriceValidUntil = model.AvailableEndDate,
+                Availability = @"https://schema.org/" + (model.InStock ? "InStock" : "OutOfStock")
+            };
+
+            foreach (var associatedProduct in model.AssociatedProducts)
+                product.IsSimilarTo.Add(await PrepareJsonLdProductAsync(associatedProduct));
+
+            if (model.ProductReviewOverview.TotalReviews > 0)
+            {
+                foreach (var review in model.ProductReviews.Items)
+                {
+                    product.Review.Add(new JsonLdReview()
+                    {
+                        Name = review.Title,
+                        ReviewBody = review.ReviewText,
+                        ReviewRating = new JsonLdRating()
+                        {
+                            RatingValue = review.Rating
+                        },
+                        Author = review.CustomerName,
+                        DatePublished = review.WrittenOnStr
+                    });
+                }
+            }
+            return product;
+        }
         #endregion
 
         #region Methods
@@ -1717,7 +1814,7 @@ namespace Nop.Web.Factories
                 }
                 model.InStock = model.AssociatedProducts.Any(associatedProduct => associatedProduct.InStock);
             }
-
+            model.JsonLd = new HtmlString(JsonConvert.SerializeObject(await PrepareJsonLdProductAsync(model)));
             return model;
         }
 

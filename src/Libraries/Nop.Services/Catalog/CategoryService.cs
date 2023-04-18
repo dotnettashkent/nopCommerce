@@ -1,13 +1,18 @@
-﻿using Nop.Core;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
+using Nop.Core.Domain.JsonLD;
 using Nop.Data;
 using Nop.Services.Customers;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Security;
+using Nop.Services.Seo;
 using Nop.Services.Stores;
 
 namespace Nop.Services.Catalog
@@ -20,6 +25,7 @@ namespace Nop.Services.Catalog
         #region Fields
 
         protected readonly IAclService _aclService;
+        protected readonly IActionContextAccessor _actionContextAccessor;
         protected readonly ICustomerService _customerService;
         protected readonly ILocalizationService _localizationService;
         protected readonly IRepository<Category> _categoryRepository;
@@ -29,6 +35,9 @@ namespace Nop.Services.Catalog
         protected readonly IStaticCacheManager _staticCacheManager;
         protected readonly IStoreContext _storeContext;
         protected readonly IStoreMappingService _storeMappingService;
+        protected readonly IUrlHelperFactory _urlHelperFactory;
+        protected readonly IUrlRecordService _urlRecordService;
+        protected readonly IWebHelper _webHelper;
         protected readonly IWorkContext _workContext;
 
         #endregion
@@ -37,6 +46,7 @@ namespace Nop.Services.Catalog
 
         public CategoryService(
             IAclService aclService,
+            IActionContextAccessor actionContextAccessor,
             ICustomerService customerService,
             ILocalizationService localizationService,
             IRepository<Category> categoryRepository,
@@ -46,9 +56,13 @@ namespace Nop.Services.Catalog
             IStaticCacheManager staticCacheManager,
             IStoreContext storeContext,
             IStoreMappingService storeMappingService,
+            IUrlHelperFactory urlHelperFactory,
+            IUrlRecordService urlRecordService,
+            IWebHelper webHelper,
             IWorkContext workContext)
         {
             _aclService = aclService;
+            _actionContextAccessor = actionContextAccessor;
             _customerService = customerService;
             _localizationService = localizationService;
             _categoryRepository = categoryRepository;
@@ -58,6 +72,9 @@ namespace Nop.Services.Catalog
             _staticCacheManager = staticCacheManager;
             _storeContext = storeContext;
             _storeMappingService = storeMappingService;
+            _urlHelperFactory = urlHelperFactory;
+            _urlRecordService = urlRecordService;
+            _webHelper = webHelper;
             _workContext = workContext;
         }
 
@@ -795,6 +812,37 @@ namespace Nop.Services.Catalog
 
                 return result;
             });
+        }
+
+        /// <summary>
+        /// Prepare JsonLD Breadcrumb list
+        /// </summary>
+        /// <param name="category">Category</param>
+        /// <returns>A task that represents the asynchronous operation
+        /// The task result JsonLD Breadbrumb list
+        /// </returns>
+        public async Task<JsonLdBreadcrumbList> PrepareJsonLdBreadCrumbListAsync(Category category)
+        {
+            var jsonLdBreadcrumbList = new JsonLdBreadcrumbList();
+            var position = 1;
+            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            foreach (var cat in await GetCategoryBreadCrumbAsync(category))
+            {
+                var jsonLdBreadcrumbListItem = new JsonLdBreadcrumbListItem()
+                {
+                    Position = position,
+                    Item = new JsonLdBreadcrumbItem()
+                    {
+                        Id = urlHelper.RouteUrl("Category", new { SeName = await _urlRecordService.GetSeNameAsync(cat) },
+                                                                                      _webHelper.IsCurrentConnectionSecured() ? "https" : "http"),
+                        Name = await _localizationService.GetLocalizedAsync(cat, x => x.Name)
+                    }
+                };
+                jsonLdBreadcrumbList.ItemListElement.Add(jsonLdBreadcrumbListItem);
+                position++;
+            }
+
+            return jsonLdBreadcrumbList;
         }
 
         #endregion
