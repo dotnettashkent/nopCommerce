@@ -767,6 +767,85 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
             }
         }
 
+        /// <summary>
+        /// Create new Contact
+        /// </summary>
+        /// <param name="order">Order</param>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public async System.Threading.Tasks.Task CreateContactOnOrderAsync(Order order)
+        {
+            try
+            {
+                if (order is null)
+                    throw new ArgumentNullException(nameof(order));
+
+                var customer = await _customerService.GetCustomerByIdAsync(order.CustomerId);
+
+                //create API client
+                var client = await CreateApiClientAsync(config => new ContactsApi(config));
+                //try to get list identifier
+                var key = $"{nameof(SendinblueSettings)}.{nameof(SendinblueSettings.ListId)}";
+
+                var listId = await _settingService.GetSettingByKeyAsync<int>(key, storeId: order.StoreId);
+                if (listId == 0)
+                    listId = await _settingService.GetSettingByKeyAsync<int>(key);
+                if (listId == 0)
+                {
+                    await _logger.WarningAsync($"Sendinblue synchronization warning: List ID is empty for store #{order.StoreId}");
+                    return;
+                }
+                //create contact
+                var attributes = new Dictionary<string, string>
+                {
+                    [SendinblueDefaults.IdServiceAttribute] = order.Id.ToString(),
+                    [SendinblueDefaults.OrderIdServiceAttribute] = order.Id.ToString(),
+                    [SendinblueDefaults.OrderDateServiceAttribute] = order.PaidDateUtc.ToString(),
+                    [SendinblueDefaults.OrderTotalServiceAttribute] = order.OrderTotal.ToString()
+                };
+                switch (await GetAccountLanguageAsync())
+                {
+                    case SendinblueAccountLanguage.French:
+                        attributes.Add(SendinblueDefaults.FirstNameFrenchServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNameFrenchServiceAttribute, customer.LastName);
+                        break;
+                    case SendinblueAccountLanguage.German:
+                        attributes.Add(SendinblueDefaults.FirstNameGermanServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNameGermanServiceAttribute, customer.LastName);
+                        break;
+                    case SendinblueAccountLanguage.Italian:
+                        attributes.Add(SendinblueDefaults.FirstNameItalianServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNameItalianServiceAttribute, customer.LastName);
+                        break;
+                    case SendinblueAccountLanguage.Portuguese:
+                        attributes.Add(SendinblueDefaults.FirstNamePortugueseServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNamePortugueseServiceAttribute, customer.LastName);
+                        break;
+                    case SendinblueAccountLanguage.Spanish:
+                        attributes.Add(SendinblueDefaults.FirstNameSpanishServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNameSpanishServiceAttribute, customer.LastName);
+                        break;
+                    case SendinblueAccountLanguage.English:
+                        attributes.Add(SendinblueDefaults.FirstNameServiceAttribute, customer.FirstName);
+                        attributes.Add(SendinblueDefaults.LastNameServiceAttribute, customer.LastName);
+                        break;
+                }
+                var createContact = new CreateContact
+                {
+                    Email = customer.Email,
+                    Attributes = attributes,
+                    ListIds = new List<long?> { listId },
+                    UpdateEnabled = true
+                };
+                await client.CreateContactAsync(createContact);
+            }
+            catch (Exception exception)
+            {
+                //log full error
+                await _logger.ErrorAsync($"Sendinblue error: {exception.Message}.", exception, await _workContext.GetCurrentCustomerAsync());
+            }
+        }
+
         #endregion
 
         #region Common
