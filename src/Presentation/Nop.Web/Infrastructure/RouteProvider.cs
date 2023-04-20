@@ -395,7 +395,7 @@ namespace Nop.Web.Infrastructure
 
             //order downloads (file result)
             endpointRouteBuilder.MapControllerRoute(name: "GetDownload",
-                pattern: $"download/getdownload/{{orderItemId:guid}}/{{agree?}}",
+                pattern: $"download/getdownload/{{orderItemId:guid}}/{{associatedProduct:min(0)}}/{{agree?}}",
                 defaults: new { controller = "Download", action = "GetDownload" });
 
             endpointRouteBuilder.MapControllerRoute(name: "GetLicense",

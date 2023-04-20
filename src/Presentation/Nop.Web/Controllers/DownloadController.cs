@@ -63,7 +63,7 @@ namespace Nop.Web.Controllers
 
         //ignore SEO friendly URLs checks
         [CheckLanguageSeoCode(ignore: true)]
-        public virtual async Task<IActionResult> GetDownload(Guid orderItemId, bool agree = false)
+        public virtual async Task<IActionResult> GetDownload(Guid orderItemId, int associatedProduct, bool agree = false)
         {
             var orderItem = await _orderService.GetOrderItemByGuidAsync(orderItemId);
             if (orderItem == null)
@@ -84,7 +84,7 @@ namespace Nop.Web.Controllers
                     return Content("This is not your order");
             }
 
-            var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
+            var product = await _productService.GetProductByIdAsync(associatedProduct > 0 ? associatedProduct : orderItem.ProductId);
 
             var download = await _downloadService.GetDownloadByIdAsync(product.DownloadId);
             if (download == null)

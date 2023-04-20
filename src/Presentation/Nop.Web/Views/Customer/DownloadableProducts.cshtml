@@ -71,8 +71,14 @@
                                     @if (item.DownloadId > 0)
                                     {
                                         <div>
-                                            <a href="@Url.RouteUrl("GetDownload", new { orderItemId = item.OrderItemGuid })">@T("DownloadableProducts.Fields.Download")</a>
+                                            <a href="@Url.RouteUrl("GetDownload", new { orderItemId = item.OrderItemGuid, associatedProduct = 0 })">@item.ProductName</a>
                                         </div>
+                                        foreach (var associatedProduct in item.AssociatedDownloadableProducs)
+                                        {
+                                            <div>
+                                                <a href="@Url.RouteUrl("GetDownload", new { orderItemId = item.OrderItemGuid, associatedProduct = associatedProduct.ProductId})">@associatedProduct.ProductName</a>
+                                            </div>
+                                        }
                                     }
                                     else
                                     {

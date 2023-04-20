@@ -73,6 +73,7 @@ namespace Nop.Services.Messages
         protected readonly IPaymentPluginManager _paymentPluginManager;
         protected readonly IPaymentService _paymentService;
         protected readonly IPriceFormatter _priceFormatter;
+        protected readonly IProductAttributeParser _productAttributeParser;
         protected readonly IProductService _productService;
         protected readonly IRewardPointService _rewardPointService;
         protected readonly IShipmentService _shipmentService;
@@ -116,6 +117,7 @@ namespace Nop.Services.Messages
             IPaymentPluginManager paymentPluginManager,
             IPaymentService paymentService,
             IPriceFormatter priceFormatter,
+            IProductAttributeParser productAttributeParser,
             IProductService productService,
             IRewardPointService rewardPointService,
             IShipmentService shipmentService,
@@ -153,6 +155,7 @@ namespace Nop.Services.Messages
             _paymentPluginManager = paymentPluginManager;
             _paymentService = paymentService;
             _priceFormatter = priceFormatter;
+            _productAttributeParser = productAttributeParser;
             _productService = productService;
             _rewardPointService = rewardPointService;
             _shipmentService = shipmentService;
@@ -505,11 +508,29 @@ namespace Nop.Services.Messages
                 //add download link
                 if (await _orderService.IsDownloadAllowedAsync(orderItem))
                 {
-                    var downloadUrl = await RouteUrlAsync(order.StoreId, "GetDownload", new { orderItemId = orderItem.OrderItemGuid });
+                    var downloadUrl = await RouteUrlAsync(order.StoreId, "GetDownload", new { orderItemId = orderItem.OrderItemGuid, associatedProduct = 0 });
                     var downloadLink = $"<a class=\"link\" href=\"{downloadUrl}\">{await _localizationService.GetResourceAsync("Messages.Order.Product(s).Download", languageId)}</a>";
                     sb.AppendLine("<br />");
                     sb.AppendLine(downloadLink);
+
+                    //add download link for associated downloadable products
+                    var associatedProducts = await (await _productAttributeParser.ParseProductAttributeValuesAsync(orderItem.AttributesXml))
+                        .Where(attributeValue => attributeValue.AttributeValueType == AttributeValueType.AssociatedToProduct)
+                        .SelectAwait(async attributeValue => await _productService.GetProductByIdAsync(attributeValue.AssociatedProductId)).ToListAsync();
+                    
+                    foreach (var associatedProduct in associatedProducts)
+                    {
+                        var aProduct = await _productService.GetProductByIdAsync(associatedProduct.Id);
+                        if (aProduct.IsDownload)
+                        {
+                            downloadUrl = await RouteUrlAsync(order.StoreId, "GetDownload", new { orderItemId = orderItem.OrderItemGuid, associatedProduct = associatedProduct.Id });
+                            downloadLink = $"<a class=\"link\" href=\"{downloadUrl}\">{await _localizationService.GetLocalizedAsync(aProduct, x => x.Name)} - {await _localizationService.GetResourceAsync("Messages.Order.Product(s).Download", languageId)}</a>";
+                            sb.AppendLine("<br />");
+                            sb.AppendLine(downloadLink);
+                        }
+                    }
                 }
+
                 //add download link
                 if (await _orderService.IsLicenseDownloadAllowedAsync(orderItem))
                 {

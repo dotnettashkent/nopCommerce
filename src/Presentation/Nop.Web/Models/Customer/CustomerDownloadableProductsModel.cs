@@ -24,6 +24,7 @@ namespace Nop.Web.Models.Customer
             public string ProductName { get; set; }
             public string ProductSeName { get; set; }
             public string ProductAttributes { get; set; }
+            public IList<DownloadableProductsModel> AssociatedDownloadableProducs { get; set; }
 
             public int DownloadId { get; set; }
             public int LicenseId { get; set; }
