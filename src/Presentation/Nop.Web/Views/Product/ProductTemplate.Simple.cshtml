@@ -62,7 +62,9 @@
         <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form">
             @if (seoSettings.MicrodataEnabled)
             {
-                @await Html.PartialAsync("_JsonLd", Model)
+                <script type="application/ld+json">
+                    @Model.JsonLd
+                </script>
             }
             <div data-productid="@Model.Id">
                 <div class="product-essential">

@@ -2,7 +2,6 @@
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
-using Nop.Core.Domain.JsonLD;
 
 namespace Nop.Services.Catalog
 {
@@ -292,13 +291,5 @@ namespace Nop.Services.Catalog
         /// </returns>
         Task<IList<Category>> GetCategoryBreadCrumbAsync(Category category, IList<Category> allCategories = null, bool showHidden = false);
 
-        /// <summary>
-        /// Prepare JsonLD Breadcrumb list
-        /// </summary>
-        /// <param name="category">Category</param>
-        /// <returns>A task that represents the asynchronous operation
-        /// The task result JsonLD Breadbrumb list
-        /// </returns>
-        Task<JsonLdBreadcrumbList> PrepareJsonLdBreadCrumbListAsync(Category category);
     }
 }

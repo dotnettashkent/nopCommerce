@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Nop.Core.Domain.JsonLD
+namespace Nop.Web.Models.JsonLD
 {
     public class JsonLdOffer : BaseNopJsonLD
     {

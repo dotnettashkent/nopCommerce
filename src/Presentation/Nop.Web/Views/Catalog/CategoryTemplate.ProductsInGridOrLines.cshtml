@@ -59,9 +59,12 @@
                     position++;
                 }
             </ul>
-            <script type="application/ld+json">
-                @Model.JsonLd
-            </script>
+            @if (seoSettings.MicrodataEnabled)
+            {
+                <script type="application/ld+json">
+                    @Model.JsonLd
+                </script>
+            }
         </div>
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CategoryDetailsAfterBreadcrumb, additionalData = Model })
     }

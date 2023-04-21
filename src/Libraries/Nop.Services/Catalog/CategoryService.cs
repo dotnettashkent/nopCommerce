@@ -6,7 +6,6 @@ using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
-using Nop.Core.Domain.JsonLD;
 using Nop.Data;
 using Nop.Services.Customers;
 using Nop.Services.Discounts;
@@ -812,38 +811,7 @@ namespace Nop.Services.Catalog
 
                 return result;
             });
-        }
-
-        /// <summary>
-        /// Prepare JsonLD Breadcrumb list
-        /// </summary>
-        /// <param name="category">Category</param>
-        /// <returns>A task that represents the asynchronous operation
-        /// The task result JsonLD Breadbrumb list
-        /// </returns>
-        public async Task<JsonLdBreadcrumbList> PrepareJsonLdBreadCrumbListAsync(Category category)
-        {
-            var jsonLdBreadcrumbList = new JsonLdBreadcrumbList();
-            var position = 1;
-            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            foreach (var cat in await GetCategoryBreadCrumbAsync(category))
-            {
-                var jsonLdBreadcrumbListItem = new JsonLdBreadcrumbListItem()
-                {
-                    Position = position,
-                    Item = new JsonLdBreadcrumbItem()
-                    {
-                        Id = urlHelper.RouteUrl("Category", new { SeName = await _urlRecordService.GetSeNameAsync(cat) },
-                                                                                      _webHelper.IsCurrentConnectionSecured() ? "https" : "http"),
-                        Name = await _localizationService.GetLocalizedAsync(cat, x => x.Name)
-                    }
-                };
-                jsonLdBreadcrumbList.ItemListElement.Add(jsonLdBreadcrumbListItem);
-                position++;
-            }
-
-            return jsonLdBreadcrumbList;
-        }
+        }        
 
         #endregion
     }
