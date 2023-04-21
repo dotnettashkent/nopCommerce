@@ -2032,6 +2032,22 @@ namespace Nop.Services.Catalog
 
         #endregion
 
+        #region Associated products
+
+        /// <summary>
+        /// Get associated products by attributesXml
+        /// </summary>
+        /// <param name="attributesXml">AttributesXml</param>
+        /// <returns></returns>
+        public virtual async Task<IList<Product>> GetAssociatedProductsByAttributesXmlAsync(string attributesXml)
+        {
+            return await (await _productAttributeParser.ParseProductAttributeValuesAsync(attributesXml))
+                .Where(attributeValue => attributeValue.AttributeValueType == AttributeValueType.AssociatedToProduct)
+                .SelectAwait(async attributeValue => await GetProductByIdAsync(attributeValue.AssociatedProductId)).ToListAsync();
+        }
+
+        #endregion
+
         #region Cross-sell products
 
         /// <summary>

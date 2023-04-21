@@ -525,6 +525,17 @@ namespace Nop.Services.Catalog
 
         #endregion
 
+        #region Associated products
+
+        /// <summary>
+        /// Get associated products by attributesXml
+        /// </summary>
+        /// <param name="attributesXml">AttributesXml</param>
+        /// <returns></returns>
+        Task<IList<Product>> GetAssociatedProductsByAttributesXmlAsync(string attributesXml);
+
+        #endregion
+
         #region Cross-sell products
 
         /// <summary>

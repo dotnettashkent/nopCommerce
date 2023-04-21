@@ -64,7 +64,6 @@ namespace Nop.Web.Factories
         protected readonly IOrderService _orderService;
         protected readonly IPermissionService _permissionService;
         protected readonly IPictureService _pictureService;
-        protected readonly IProductAttributeParser _productAttributeParser;
         protected readonly IProductService _productService;
         protected readonly IReturnRequestService _returnRequestService;
         protected readonly IStateProvinceService _stateProvinceService;
@@ -108,7 +107,6 @@ namespace Nop.Web.Factories
             IOrderService orderService,
             IPermissionService permissionService,
             IPictureService pictureService,
-            IProductAttributeParser productAttributeParser,
             IProductService productService,
             IReturnRequestService returnRequestService,
             IStateProvinceService stateProvinceService,
@@ -148,7 +146,6 @@ namespace Nop.Web.Factories
             _orderService = orderService;
             _permissionService = permissionService;
             _pictureService = pictureService;
-            _productAttributeParser = productAttributeParser;
             _productService = productService;
             _returnRequestService = returnRequestService;
             _stateProvinceService = stateProvinceService;
@@ -800,15 +797,13 @@ namespace Nop.Web.Factories
                 var product = await _productService.GetProductByIdAsync(item.ProductId);
 
                 //associated products
-                var associatedProducts = await (await _productAttributeParser.ParseProductAttributeValuesAsync(item.AttributesXml))
-                        .Where(attributeValue => attributeValue.AttributeValueType == AttributeValueType.AssociatedToProduct)
-                        .SelectAwait(async attributeValue => await _productService.GetProductByIdAsync(attributeValue.AssociatedProductId)).ToListAsync();
+                var associatedProducts = await _productService.GetAssociatedProductsByAttributesXmlAsync(item.AttributesXml);
 
                 var associatedDownloadableProducs = new List<CustomerDownloadableProductsModel.DownloadableProductsModel>();
                 foreach (var associatedProduct in associatedProducts)
                 {
                     var aProduct = await _productService.GetProductByIdAsync(associatedProduct.Id);
-                    if (aProduct.IsDownload)
+                    if (aProduct != null && aProduct.IsDownload)
                     {
                         associatedDownloadableProducs.Add(new CustomerDownloadableProductsModel.DownloadableProductsModel
                         {
