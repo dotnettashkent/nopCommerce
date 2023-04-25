@@ -705,14 +705,16 @@ var PaymentInfo = {
 
 
 var ConfirmOrder = {
-    form: false,
+    div: false,
+    form: false,    
     saveUrl: false,
     isSuccess: false,
     isCaptchaEnabled: false,
     isReCaptchaV3: false,
     recaptchaPublicKey: "",
 
-    init: function (saveUrl, successUrl, isCaptchaEnabled, isReCaptchaV3, recaptchaPublicKey) {
+  init: function (div, saveUrl, successUrl, isCaptchaEnabled, isReCaptchaV3, recaptchaPublicKey) {
+        this.div = div;
         this.saveUrl = saveUrl;
         this.successUrl = successUrl;
         this.isCaptchaEnabled = isCaptchaEnabled;
@@ -767,7 +769,7 @@ var ConfirmOrder = {
                 });
             });
         } else {
-            recaptchaToken = grecaptcha.getResponse();
+          recaptchaToken = $(this.div).find('.captcha-box textarea[name="g-recaptcha-response"]').val();
         }
 
         while (recaptchaToken == '') {
