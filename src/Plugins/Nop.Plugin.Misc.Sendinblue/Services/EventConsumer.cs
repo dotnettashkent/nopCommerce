@@ -118,7 +118,6 @@ namespace Nop.Plugin.Misc.Sendinblue.Services
         {
             //handle event
             await _marketingAutomationManager.HandleOrderPlacedEventAsync(eventMessage.Order);
-            await _sendinblueEmailManager.CreateContactOnOrderAsync(eventMessage.Order);
         }
 
         /// <summary>
