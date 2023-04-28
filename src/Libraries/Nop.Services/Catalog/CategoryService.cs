@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
@@ -11,7 +8,6 @@ using Nop.Services.Customers;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Security;
-using Nop.Services.Seo;
 using Nop.Services.Stores;
 
 namespace Nop.Services.Catalog
@@ -24,7 +20,6 @@ namespace Nop.Services.Catalog
         #region Fields
 
         protected readonly IAclService _aclService;
-        protected readonly IActionContextAccessor _actionContextAccessor;
         protected readonly ICustomerService _customerService;
         protected readonly ILocalizationService _localizationService;
         protected readonly IRepository<Category> _categoryRepository;
@@ -34,9 +29,6 @@ namespace Nop.Services.Catalog
         protected readonly IStaticCacheManager _staticCacheManager;
         protected readonly IStoreContext _storeContext;
         protected readonly IStoreMappingService _storeMappingService;
-        protected readonly IUrlHelperFactory _urlHelperFactory;
-        protected readonly IUrlRecordService _urlRecordService;
-        protected readonly IWebHelper _webHelper;
         protected readonly IWorkContext _workContext;
 
         #endregion
@@ -45,7 +37,6 @@ namespace Nop.Services.Catalog
 
         public CategoryService(
             IAclService aclService,
-            IActionContextAccessor actionContextAccessor,
             ICustomerService customerService,
             ILocalizationService localizationService,
             IRepository<Category> categoryRepository,
@@ -55,13 +46,9 @@ namespace Nop.Services.Catalog
             IStaticCacheManager staticCacheManager,
             IStoreContext storeContext,
             IStoreMappingService storeMappingService,
-            IUrlHelperFactory urlHelperFactory,
-            IUrlRecordService urlRecordService,
-            IWebHelper webHelper,
             IWorkContext workContext)
         {
             _aclService = aclService;
-            _actionContextAccessor = actionContextAccessor;
             _customerService = customerService;
             _localizationService = localizationService;
             _categoryRepository = categoryRepository;
@@ -71,9 +58,6 @@ namespace Nop.Services.Catalog
             _staticCacheManager = staticCacheManager;
             _storeContext = storeContext;
             _storeMappingService = storeMappingService;
-            _urlHelperFactory = urlHelperFactory;
-            _urlRecordService = urlRecordService;
-            _webHelper = webHelper;
             _workContext = workContext;
         }
 
@@ -811,7 +795,7 @@ namespace Nop.Services.Catalog
 
                 return result;
             });
-        }        
+        }
 
         #endregion
     }

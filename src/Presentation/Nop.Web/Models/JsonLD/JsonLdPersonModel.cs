@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdPerson : BaseNopJsonLD
+    public record JsonLdPersonModel : BaseNopModel
     {
         [JsonProperty("@type")]
         public static string Type => "Person";

@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Net;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using Nop.Core;
@@ -723,7 +722,7 @@ namespace Nop.Web.Factories
             }
 
             if (_seoSettings.MicrodataEnabled)
-                breadcrumbModel.JsonLd = new HtmlString(JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdBreadCrumbProductAsync(breadcrumbModel)));
+                breadcrumbModel.JsonLd = JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdBreadCrumbProductAsync(breadcrumbModel));
 
             return breadcrumbModel;
         }
@@ -1731,7 +1730,7 @@ namespace Nop.Web.Factories
                 model.InStock = model.AssociatedProducts.Any(associatedProduct => associatedProduct.InStock);
             }
             if (_seoSettings.MicrodataEnabled)
-                model.JsonLd = new HtmlString(JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdProductAsync(model)));
+                model.JsonLd = JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdProductAsync(model));
 
             return model;
         }

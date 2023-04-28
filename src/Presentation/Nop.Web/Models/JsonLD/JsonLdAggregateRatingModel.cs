@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdAggregateRating : BaseNopJsonLD
+    public record JsonLdAggregateRatingModel : BaseNopModel
     {
         [JsonProperty("@type")]
         public static string Type => "AggregateRating";

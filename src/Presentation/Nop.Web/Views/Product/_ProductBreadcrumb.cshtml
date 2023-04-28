@@ -41,7 +41,7 @@
         @if (seoSettings.MicrodataEnabled)
         {
             <script type="application/ld+json">
-                @Model.JsonLd
+                @Html.Raw(Model.JsonLd)
             </script>
         }
     </div>

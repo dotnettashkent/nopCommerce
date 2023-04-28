@@ -1,14 +1,15 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdReview : BaseNopJsonLD
+    public record JsonLdReviewModel : BaseNopModel
     {
         [JsonProperty("@type")]
         public static string Type => "Review";
 
         [JsonProperty("author")]
-        public JsonLdPerson Author { get; set; }
+        public JsonLdPersonModel Author { get; set; }
 
         [JsonProperty("datePublished")]
         public string DatePublished { get; set; }
@@ -20,6 +21,6 @@ namespace Nop.Web.Models.JsonLD
         public string ReviewBody { get; set; }
 
         [JsonProperty("reviewRating")]
-        public JsonLdRating ReviewRating { get; set; }
+        public JsonLdRatingModel ReviewRating { get; set; }
     }
 }

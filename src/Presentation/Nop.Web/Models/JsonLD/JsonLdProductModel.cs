@@ -1,16 +1,18 @@
 ﻿using Newtonsoft.Json;
-using Nop.Web.Models.JsonLD;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdProduct : BaseNopJsonLD
+    public record JsonLdProductModel : BaseNopModel
     {
-        public JsonLdProduct()
+        public JsonLdProductModel()
         {
-            IsSimilarTo = new List<JsonLdProduct>();
-            Brand = new List<JsonLdBrand>();
-            Review = new List<JsonLdReview>();
+            IsSimilarTo = new List<JsonLdProductModel>();
+            Brand = new List<JsonLdBrandModel>();
+            Review = new List<JsonLdReviewModel>();
         }
+        [JsonProperty("@context")]
+        public static string Context => "https://schema.org";
 
         [JsonProperty("@type")]
         public static string Type => "Product";
@@ -19,16 +21,16 @@ namespace Nop.Web.Models.JsonLD
         public string Name { get; set; }
 
         [JsonProperty("Offers")]
-        public JsonLdOffer Offer { get; set; }
+        public JsonLdOfferModel Offer { get; set; }
 
         [JsonProperty("aggregateRating")]
-        public JsonLdAggregateRating AggregateRating { get; set; }
+        public JsonLdAggregateRatingModel AggregateRating { get; set; }
 
         [JsonProperty("review")]
-        public IList<JsonLdReview> Review { get; set; }
+        public IList<JsonLdReviewModel> Review { get; set; }
 
         [JsonProperty("isSimilarTo")]
-        public IList<JsonLdProduct> IsSimilarTo { get; set; }
+        public IList<JsonLdProductModel> IsSimilarTo { get; set; }
 
         [JsonProperty("sku")]
         public string Sku { get; set; }
@@ -47,6 +49,6 @@ namespace Nop.Web.Models.JsonLD
 
         public string Image { get; set; }
 
-        public IList<JsonLdBrand> Brand { get; set; }
+        public IList<JsonLdBrandModel> Brand { get; set; }
     }
 }

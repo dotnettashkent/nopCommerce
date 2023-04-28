@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdBreadcrumbListItem : BaseNopJsonLD
+    public record JsonLdBreadcrumbListItemModel : BaseNopModel
     {
         [JsonProperty("@type")]
         public static string Type => "ListItem";
@@ -11,6 +12,6 @@ namespace Nop.Web.Models.JsonLD
         public int Position { get; set; }
 
         [JsonProperty("item")]
-        public JsonLdBreadcrumbItem Item { get; set; }
+        public JsonLdBreadcrumbItemModel Item { get; set; }
     }
 }

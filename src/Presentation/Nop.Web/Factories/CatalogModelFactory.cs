@@ -2,7 +2,6 @@
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml.XPath;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using Nop.Core;
@@ -417,7 +416,7 @@ namespace Nop.Web.Factories
                 var categoryBreadcrumb = model.CategoryBreadcrumb.Select(c => new CategorySimpleModel { Id = c.Id, Name = c.Name, SeName = c.SeName }).ToList();
 
                 if (_seoSettings.MicrodataEnabled)
-                    model.JsonLd = new HtmlString(JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdBreadCrumbCategoryAsync(categoryBreadcrumb)));
+                    model.JsonLd = JsonConvert.SerializeObject(await _jsonLdModelFactory.PrepareJsonLdBreadCrumbCategoryAsync(categoryBreadcrumb));
             }
 
             var currentStore = await _storeContext.GetCurrentStoreAsync();

@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdBreadcrumbItem : BaseNopJsonLD
+    public record JsonLdBreadcrumbItemModel : BaseNopModel
     {
         [JsonProperty("@id")]
         public string Id { get; set; }

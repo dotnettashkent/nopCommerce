@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Models.JsonLD
 {
-    public class JsonLdRating : BaseNopJsonLD
+    public record JsonLdRatingModel : BaseNopModel
     {
         [JsonProperty("@type")]
         public static string Type => "Rating";

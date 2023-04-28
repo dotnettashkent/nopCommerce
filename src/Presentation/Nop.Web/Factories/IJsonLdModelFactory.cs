@@ -12,7 +12,7 @@ namespace Nop.Web.Factories
         /// <returns>A task that represents the asynchronous operation
         /// The task result JsonLD Breadbrumb list
         /// </returns>
-        Task<JsonLdBreadcrumbList> PrepareJsonLdBreadCrumbCategoryAsync(IList<CategorySimpleModel> categoryBreadcrumb);
+        Task<JsonLdBreadcrumbListModel> PrepareJsonLdBreadCrumbCategoryAsync(IList<CategorySimpleModel> categoryBreadcrumb);
 
         /// <summary>
         /// Prepare product breadcrum JsonLD
@@ -21,7 +21,7 @@ namespace Nop.Web.Factories
         /// <returns>A task that represents the asynchronous operation
         /// The task result JsonLD breadcrumb list
         /// </returns>
-        Task<JsonLdBreadcrumbList> PrepareJsonLdBreadCrumbProductAsync(ProductDetailsModel.ProductBreadcrumbModel breadcrumbModel);
+        Task<JsonLdBreadcrumbListModel> PrepareJsonLdBreadCrumbProductAsync(ProductDetailsModel.ProductBreadcrumbModel breadcrumbModel);
 
         // <summary>
         /// Prepare JsonLD product
@@ -30,6 +30,6 @@ namespace Nop.Web.Factories
         /// <returns>A task that represents the asynchronous operation
         /// The task result JsonLD product
         /// </returns>
-        Task<JsonLdProduct> PrepareJsonLdProductAsync(ProductDetailsModel model);
+        Task<JsonLdProductModel> PrepareJsonLdProductAsync(ProductDetailsModel model);
     }
 }
